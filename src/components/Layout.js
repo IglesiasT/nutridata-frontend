@@ -78,8 +78,8 @@ export default function Layout() {
         navigation={NAVIGATION}
         theme={theme}
         branding={{
-          logo: <img src="https://mui.com/static/logo.png" alt="Nutri Data logo" />,
-          title: 'Nutri Data',
+          logo: <img src="https://mui.com/static/logo.png" alt="NutriData logo" />,
+          title: 'NutriData',
           homeUrl: '/',
         }}
       >
