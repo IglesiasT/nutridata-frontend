@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -123,7 +124,9 @@ const PatientsPage = () => {
       </Dialog>
       <ul>
         {patients.map((patient) => (
-          <li key={patient.id}>{patient.name}</li>
+          <li key={patient.id}>
+            <Link to={`/patients/${patient.id}`}>{patient.name}</Link>
+          </li>
         ))}
       </ul>
     </div>
