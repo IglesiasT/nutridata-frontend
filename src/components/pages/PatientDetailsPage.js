@@ -15,6 +15,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import Alert from '@mui/material/Alert';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import TextField from '@mui/material/TextField';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogContentText from '@mui/material/DialogContentText';
+import DialogTitle from '@mui/material/DialogTitle';
 
 // Icons
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -29,7 +35,6 @@ import EmailIcon from '@mui/icons-material/Email';
 import CakeIcon from '@mui/icons-material/Cake';
 import TabPanel from '@mui/lab/TabPanel';
 import TabContext from '@mui/lab/TabContext';
-
 import { useTheme } from '@mui/material/styles';
 
 const PatientDetailsPage = () => {
@@ -40,6 +45,17 @@ const PatientDetailsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [tabValue, setTabValue] = useState('1');
+  
+  // Dialog state
+  const [open, setOpen] = useState(false);
+  const [currentPatient, setCurrentPatient] = useState({
+    name: '',
+    surname: '',
+    email: '', 
+    age: '', 
+    height: '',
+    weight: ''
+  });
 
   useEffect(() => {
     const fetchPatient = async () => {
@@ -67,9 +83,68 @@ const PatientDetailsPage = () => {
     setTabValue(newValue);
   };
 
-  const handleEdit = () => {
-    // Implement edit functionality or navigate to edit page
-    console.log("Edit patient:", patient.id);
+  const handleEditOpen = () => {
+    // Convert numeric values to string for form compatibility
+    setCurrentPatient({
+      ...patient,
+      age: patient.age !== null ? patient.age.toString() : '',
+      height: patient.height !== null ? patient.height.toString() : '',
+      weight: patient.weight !== null ? patient.weight.toString() : ''
+    });
+    setOpen(true);
+  };
+  
+  const handleClose = () => {
+    setOpen(false);
+  };
+  
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    
+    // Number input validation
+    if (name === "age") {
+      const parsed = parseInt(value);
+      setCurrentPatient({
+        ...currentPatient,
+        [name]: isNaN(parsed) ? '' : parsed < 1 ? '1' : value
+      });
+    } else if (name === "height" || name === "weight") {
+      const parsed = parseFloat(value);
+      setCurrentPatient({
+        ...currentPatient,
+        [name]: isNaN(parsed) ? '' : parsed < 0 ? '0' : value
+      });
+    } else {
+      setCurrentPatient({
+        ...currentPatient,
+        [name]: value
+      });
+    }
+  };
+  
+  const handleUpdatePatient = async () => {
+    if (!currentPatient.name.trim()) {
+      alert("El nombre no puede estar vacío");
+      return;
+    }
+    
+    try {
+      const patientData = {
+        ...currentPatient,
+        age: currentPatient.age ? parseInt(currentPatient.age) : null,
+        height: currentPatient.height ? parseFloat(currentPatient.height) : null,
+        weight: currentPatient.weight ? parseFloat(currentPatient.weight) : null
+      };
+      
+      await api.put(`/patients/${id}`, patientData);
+      setOpen(false);
+      
+      // Refresh patient data
+      const response = await api.get(`/patients/${id}`);
+      setPatient(response.data);
+    } catch (error) {
+      console.error("Error updating patient:", error);
+    }
   };
 
   const handleDelete = async () => {
@@ -155,11 +230,14 @@ const PatientDetailsPage = () => {
 
       {/* Patient card header */}
       <Paper sx={{ borderRadius: 2, overflow: 'hidden', mb: 3 }}>
-        <Box sx={{
-          p: 3, backgroundColor: theme.palette.mode === 'dark'
-            ? theme.palette.grey[800]
-            : '#f5f5f5'
-        }}>
+        <Box 
+          sx={{ 
+            p: 3, 
+            backgroundColor: theme.palette.mode === 'dark' 
+              ? theme.palette.grey[800] 
+              : '#f5f5f5' 
+          }}
+        >
           <Grid container spacing={2} alignItems="center">
             <Grid item>
               <Avatar 
@@ -181,7 +259,7 @@ const PatientDetailsPage = () => {
                 <Button
                   variant="outlined"
                   startIcon={<EditIcon />}
-                  onClick={handleEdit}
+                  onClick={handleEditOpen}
                 >
                   Editar
                 </Button>
@@ -382,6 +460,96 @@ const PatientDetailsPage = () => {
           </Button>
         </Box>
       </Paper>
+      
+      {/* Edit Patient Dialog */}
+      <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+        <DialogTitle>
+          Editar paciente
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ mb: 2 }}>
+            Por favor, actualice la información del paciente.
+          </DialogContentText>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                autoFocus
+                name="name"
+                label="Nombre"
+                fullWidth
+                variant="outlined"
+                value={currentPatient.name}
+                onChange={handleChange}
+                required
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="surname"
+                label="Apellido"
+                fullWidth
+                variant="outlined"
+                value={currentPatient.surname}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="email"
+                label="Email"
+                fullWidth
+                variant="outlined"
+                value={currentPatient.email}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="age"
+                label="Edad"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={currentPatient.age}
+                onChange={handleChange}
+                slotProps={{input: {min: 1}}}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="height"
+                label="Altura (cm)"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={currentPatient.height}
+                onChange={handleChange}
+                slotProps={{input: {min: 0, step: 0.1}}}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="weight"
+                label="Peso (kg)"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={currentPatient.weight}
+                onChange={handleChange}
+                slotProps={{input: {min: 0, step: 0.1}}}
+              />
+            </Grid>
+          </Grid>
+        </DialogContent>
+        <DialogActions sx={{ p: 3 }}>
+          <Button onClick={handleClose} variant="outlined">
+            Cancelar
+          </Button>
+          <Button onClick={handleUpdatePatient} variant="contained">
+            Guardar cambios
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };
