@@ -10,6 +10,9 @@ import { DashboardLayout } from '@toolpad/core/DashboardLayout';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Dashboard from './Dashboard';
 import PatientsPage from './pages/PatientsPage';
+import PatientDetailsPage from './pages/PatientDetailsPage';
+import theme from '../theme/theme';
+import logo from '../assets/images/nutridata-logo.webp';
 
 const NAVIGATION = [
   {
@@ -57,20 +60,6 @@ const NAVIGATION = [
   },
 ];
 
-const theme = extendTheme({
-  colorSchemes: { light: true, dark: true },
-  colorSchemeSelector: 'class',
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 600,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
-});
-
 export default function Layout() {
   return (
     <Router>
@@ -78,7 +67,7 @@ export default function Layout() {
         navigation={NAVIGATION}
         theme={theme}
         branding={{
-          logo: <img src="https://mui.com/static/logo.png" alt="NutriData logo" />,
+          logo: <img src={logo} alt="NutriData logo" />,
           title: 'NutriData',
           homeUrl: '/',
         }}
@@ -88,6 +77,7 @@ export default function Layout() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/patients" element={<PatientsPage />} />
+            <Route path="/patients/:id" element={<PatientDetailsPage />} />
           </Routes>
         </DashboardLayout>
       </AppProvider>
