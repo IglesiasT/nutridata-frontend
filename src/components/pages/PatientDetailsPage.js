@@ -30,9 +30,12 @@ import CakeIcon from '@mui/icons-material/Cake';
 import TabPanel from '@mui/lab/TabPanel';
 import TabContext from '@mui/lab/TabContext';
 
+import { useTheme } from '@mui/material/styles';
+
 const PatientDetailsPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const theme = useTheme();
   const [patient, setPatient] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -152,7 +155,11 @@ const PatientDetailsPage = () => {
 
       {/* Patient card header */}
       <Paper sx={{ borderRadius: 2, overflow: 'hidden', mb: 3 }}>
-        <Box sx={{ p: 3, backgroundColor: '#f5f5f5' }}>
+        <Box sx={{
+          p: 3, backgroundColor: theme.palette.mode === 'dark'
+            ? theme.palette.grey[800]
+            : '#f5f5f5'
+        }}>
           <Grid container spacing={2} alignItems="center">
             <Grid item>
               <Avatar 
