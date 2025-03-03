@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Añadido useNavigate
 import api from '../../api/axiosConfig';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -29,6 +29,7 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
+import { useTheme } from '@mui/material/styles';
 
 const PatientsPage = () => {
   const [patients, setPatients] = useState([]);
@@ -40,6 +41,8 @@ const PatientsPage = () => {
     age: '', 
     comments: '' 
   });
+  const navigate = useNavigate();
+  const theme = useTheme();
   
   const fetchPatients = async () => {
     try {
@@ -103,6 +106,10 @@ const PatientsPage = () => {
     return statuses[Math.floor(Math.random() * statuses.length)];
   };
   
+  const handleRowClick = (patientId) => {
+    navigate(`/patients/${patientId}`);
+  };
+  
   return (
     <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
       <Box sx={{ mb: 4 }}>
@@ -158,7 +165,14 @@ const PatientsPage = () => {
       <Paper sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
-            <TableHead sx={{ backgroundColor: '#f5f5f5' }}>
+            {/* Modify TableHead for dark mode */}
+            <TableHead 
+              sx={{ 
+                backgroundColor: theme.palette.mode === 'dark' 
+                  ? theme.palette.grey[800] 
+                  : '#f5f5f5' 
+              }}
+            >
               <TableRow>
                 <TableCell></TableCell>
                 <TableCell>Nombre</TableCell>
@@ -175,7 +189,19 @@ const PatientsPage = () => {
                 const statusColor = status === 'Activo' ? 'success' : 'error';
                 
                 return (
-                  <TableRow key={patient.id} hover>
+                  <TableRow 
+                    key={patient.id} 
+                    hover 
+                    sx={{ 
+                      cursor: 'pointer',
+                      '&:hover': {
+                        backgroundColor: theme.palette.mode === 'dark' 
+                          ? theme.palette.grey[700] 
+                          : theme.palette.grey[100]
+                      }
+                    }}
+                    onClick={() => handleRowClick(patient.id)}
+                  >
                     <TableCell>
                       <Avatar sx={{ bgcolor: '#8BC34A' }}>
                         {getInitials(patient.name)}
@@ -199,7 +225,14 @@ const PatientsPage = () => {
                       />
                     </TableCell>
                     <TableCell align="center">
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                      <Box 
+                        sx={{ 
+                          display: 'flex', 
+                          justifyContent: 'center', 
+                          gap: 1 
+                        }}
+                        onClick={(e) => e.stopPropagation()} // Prevent row click
+                      >
                         <IconButton 
                           component={Link} 
                           to={`/patients/${patient.id}`}
