@@ -53,11 +53,6 @@ const NAVIGATION = [
       },
     ],
   },
-  {
-    segment: 'meal-plans',
-    title: 'Meal Plans',
-    icon: <FoodBankIcon />,
-  },
 ];
 
 export default function Layout() {
