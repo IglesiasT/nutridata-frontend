@@ -21,20 +21,19 @@ import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { Grid2 as Grid } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
-import Chip from '@mui/material/Chip';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import FileUploadIcon from '@mui/icons-material/FileUpload';
 import { useTheme } from '@mui/material/styles';
 
 const PatientsPage = () => {
   const [patients, setPatients] = useState([]);
   const [open, setOpen] = useState(false);
-  const [newPatient, setNewPatient] = useState({ 
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPatient, setCurrentPatient] = useState({
     name: '',
     surname: '',
     email: '', 
@@ -58,43 +57,54 @@ const PatientsPage = () => {
     fetchPatients();
   }, []);
   
+  const resetPatientForm = () => {
+    setCurrentPatient({
+      name: '', 
+      surname: '', 
+      email: '', 
+      age: '', 
+      height: '',
+      weight: ''
+    });
+    setIsEditing(false);
+  };
+  
   const handleAddPatient = async () => {
-    if (!newPatient.name.trim()) {
+    if (!currentPatient.name.trim()) {
       alert("El nombre no puede estar vacío");
       return;
     }
     
     try {
-      const patientToAdd = {
-        ...newPatient,
-        age: newPatient.age ? parseInt(newPatient.age) : null,
-        height: newPatient.height ? parseFloat(newPatient.height) : null,
-        weight: newPatient.weight ? parseFloat(newPatient.weight) : null
+      const patientData = {
+        ...currentPatient,
+        age: currentPatient.age ? parseInt(currentPatient.age) : null,
+        height: currentPatient.height ? parseFloat(currentPatient.height) : null,
+        weight: currentPatient.weight ? parseFloat(currentPatient.weight) : null
       };
       
-      const response = await api.post("/patients", patientToAdd);
+      if (isEditing) {
+        await api.put(`/patients/${currentPatient.id}`, patientData);
+      } else {
+        await api.post("/patients", patientData);
+      }
       
       setOpen(false);
-      setNewPatient({ 
-        name: '', 
-        surname: '', 
-        email: '', 
-        age: '', 
-        height: '',
-        weight: ''
-      });
+      resetPatientForm();
       await fetchPatients();
     } catch (error) {
-      console.error("Error adding patient:", error);
+      console.error(`Error ${isEditing ? 'updating' : 'adding'} patient:`, error);
     }
   };
   
   const handleClickOpen = () => {
+    resetPatientForm();
     setOpen(true);
   };
   
   const handleClose = () => {
     setOpen(false);
+    resetPatientForm();
   };
   
   const handleChange = (e) => {
@@ -103,19 +113,19 @@ const PatientsPage = () => {
     // Number input validation
     if (name === "age") {
       const parsed = parseInt(value);
-      setNewPatient({
-        ...newPatient,
+      setCurrentPatient({
+        ...currentPatient,
         [name]: isNaN(parsed) ? '' : parsed < 1 ? '1' : value
       });
     } else if (name === "height" || name === "weight") {
       const parsed = parseFloat(value);
-      setNewPatient({
-        ...newPatient,
+      setCurrentPatient({
+        ...currentPatient,
         [name]: isNaN(parsed) ? '' : parsed < 0 ? '0' : value
       });
     } else {
-      setNewPatient({
-        ...newPatient,
+      setCurrentPatient({
+        ...currentPatient,
         [name]: value
       });
     }
@@ -132,8 +142,23 @@ const PatientsPage = () => {
     navigate(`/patients/${patientId}`);
   };
   
+  const handleEditPatient = (patient, event) => {
+    // Prevent row click
+    event.stopPropagation();
+    
+    // Convert numeric values to string for form compatibility
+    setCurrentPatient({
+      ...patient,
+      age: patient.age !== null ? patient.age.toString() : '',
+      height: patient.height !== null ? patient.height.toString() : '',
+      weight: patient.weight !== null ? patient.weight.toString() : ''
+    });
+    setIsEditing(true);
+    setOpen(true);
+  };
+  
   const handleDeletePatient = async (patientId, event) => {
-    // Preevnt row click
+    // Prevent row click
     event.stopPropagation();
     
     if (window.confirm('¿Estás seguro de que deseas eliminar este paciente?')) {
@@ -265,6 +290,7 @@ const PatientsPage = () => {
                       <IconButton 
                         size="small" 
                         sx={{ color: 'primary.main' }}
+                        onClick={(e) => handleEditPatient(patient, e)}
                       >
                         <EditIcon fontSize="small" />
                       </IconButton>
@@ -285,10 +311,14 @@ const PatientsPage = () => {
       </Paper>
       
       <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-        <DialogTitle>Agregar nuevo paciente</DialogTitle>
+        <DialogTitle>
+          {isEditing ? 'Editar paciente' : 'Agregar nuevo paciente'}
+        </DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ mb: 2 }}>
-            Por favor, ingrese la información del nuevo paciente.
+            {isEditing 
+              ? 'Por favor, actualice la información del paciente.' 
+              : 'Por favor, ingrese la información del nuevo paciente.'}
           </DialogContentText>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
@@ -298,7 +328,7 @@ const PatientsPage = () => {
                 label="Nombre"
                 fullWidth
                 variant="outlined"
-                value={newPatient.name}
+                value={currentPatient.name}
                 onChange={handleChange}
                 required
               />
@@ -309,7 +339,7 @@ const PatientsPage = () => {
                 label="Apellido"
                 fullWidth
                 variant="outlined"
-                value={newPatient.surname}
+                value={currentPatient.surname}
                 onChange={handleChange}
               />
             </Grid>
@@ -319,7 +349,7 @@ const PatientsPage = () => {
                 label="Email"
                 fullWidth
                 variant="outlined"
-                value={newPatient.email}
+                value={currentPatient.email}
                 onChange={handleChange}
               />
             </Grid>
@@ -330,7 +360,7 @@ const PatientsPage = () => {
                 type="number"
                 fullWidth
                 variant="outlined"
-                value={newPatient.age}
+                value={currentPatient.age}
                 onChange={handleChange}
                 slotProps={{input: {min: 1}}}
               />
@@ -342,7 +372,7 @@ const PatientsPage = () => {
                 type="number"
                 fullWidth
                 variant="outlined"
-                value={newPatient.height}
+                value={currentPatient.height}
                 onChange={handleChange}
                 slotProps={{input: {min: 0, step: 0.1}}}
               />
@@ -354,7 +384,7 @@ const PatientsPage = () => {
                 type="number"
                 fullWidth
                 variant="outlined"
-                value={newPatient.weight}
+                value={currentPatient.weight}
                 onChange={handleChange}
                 slotProps={{input: {min: 0, step: 0.1}}}
               />
@@ -366,7 +396,7 @@ const PatientsPage = () => {
             Cancelar
           </Button>
           <Button onClick={handleAddPatient} variant="contained">
-            Agregar paciente
+            {isEditing ? 'Guardar cambios' : 'Agregar paciente'}
           </Button>
         </DialogActions>
       </Dialog>
