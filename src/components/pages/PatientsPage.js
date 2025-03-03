@@ -171,13 +171,6 @@ const PatientsPage = () => {
               </Button>
               <Button
                 variant="outlined"
-                startIcon={<FileUploadIcon />}
-                size="small"
-              >
-                Importar
-              </Button>
-              <Button
-                variant="outlined"
                 startIcon={<FileDownloadIcon />}
                 size="small"
               >
