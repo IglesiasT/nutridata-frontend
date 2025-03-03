@@ -35,7 +35,8 @@ const PatientsPage = () => {
   const [patients, setPatients] = useState([]);
   const [open, setOpen] = useState(false);
   const [newPatient, setNewPatient] = useState({ 
-    name: '', 
+    name: '',
+    surname: '',
     email: '', 
     phone: '', 
     age: '', 
@@ -67,7 +68,7 @@ const PatientsPage = () => {
       const response = await api.post("/patients", newPatient);
       setPatients([...patients, response.data]);
       setOpen(false);
-      setNewPatient({ name: '', email: '', phone: '', age: '', comments: '' });
+      setNewPatient({ name: '', surname: '', email: '', phone: '', age: '', comments: '' });
       await fetchPatients();
     } catch (error) {
       console.error("Error adding patient:", error);
@@ -274,10 +275,21 @@ const PatientsPage = () => {
               <TextField
                 autoFocus
                 name="name"
-                label="Nombre completo"
+                label="Nombre"
                 fullWidth
                 variant="outlined"
                 value={newPatient.name}
+                onChange={handleChange}
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                autoFocus
+                name="surname"
+                label="Apellido"
+                fullWidth
+                variant="outlined"
+                value={newPatient.surname}
                 onChange={handleChange}
               />
             </Grid>
