@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Añadido useNavigate
+import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api/axiosConfig';
 import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
@@ -38,9 +38,9 @@ const PatientsPage = () => {
     name: '',
     surname: '',
     email: '', 
-    phone: '', 
     age: '', 
-    comments: '' 
+    height: '',
+    weight: ''
   });
   const navigate = useNavigate();
   const theme = useTheme();
@@ -65,10 +65,24 @@ const PatientsPage = () => {
     }
     
     try {
-      const response = await api.post("/patients", newPatient);
-      setPatients([...patients, response.data]);
+      const patientToAdd = {
+        ...newPatient,
+        age: newPatient.age ? parseInt(newPatient.age) : null,
+        height: newPatient.height ? parseFloat(newPatient.height) : null,
+        weight: newPatient.weight ? parseFloat(newPatient.weight) : null
+      };
+      
+      const response = await api.post("/patients", patientToAdd);
+      
       setOpen(false);
-      setNewPatient({ name: '', surname: '', email: '', phone: '', age: '', comments: '' });
+      setNewPatient({ 
+        name: '', 
+        surname: '', 
+        email: '', 
+        age: '', 
+        height: '',
+        weight: ''
+      });
       await fetchPatients();
     } catch (error) {
       console.error("Error adding patient:", error);
@@ -85,30 +99,51 @@ const PatientsPage = () => {
   
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewPatient({
-      ...newPatient,
-      [name]: name === "age" ? Math.max(1, Number(value)) : value
-    });
+    
+    // Number input validation
+    if (name === "age") {
+      const parsed = parseInt(value);
+      setNewPatient({
+        ...newPatient,
+        [name]: isNaN(parsed) ? '' : parsed < 1 ? '1' : value
+      });
+    } else if (name === "height" || name === "weight") {
+      const parsed = parseFloat(value);
+      setNewPatient({
+        ...newPatient,
+        [name]: isNaN(parsed) ? '' : parsed < 0 ? '0' : value
+      });
+    } else {
+      setNewPatient({
+        ...newPatient,
+        [name]: value
+      });
+    }
   };
   
   // Get initials for avatar
-  const getInitials = (name) => {
-    return name
-      .split(' ')
-      .map(word => word[0])
-      .join('')
-      .toUpperCase()
-      .substring(0, 2);
-  };
-  
-  // Function to get random status for demo purposes. It should be fetched from the API
-  const getRandomStatus = () => {
-    const statuses = ['Activo', 'Inactivo'];
-    return statuses[Math.floor(Math.random() * statuses.length)];
+  const getInitials = (name, surname) => {
+    const nameInitial = name ? name.charAt(0).toUpperCase() : '';
+    const surnameInitial = surname ? surname.charAt(0).toUpperCase() : '';
+    return nameInitial + surnameInitial;
   };
   
   const handleRowClick = (patientId) => {
     navigate(`/patients/${patientId}`);
+  };
+  
+  const handleDeletePatient = async (patientId, event) => {
+    // Preevnt row click
+    event.stopPropagation();
+    
+    if (window.confirm('¿Estás seguro de que deseas eliminar este paciente?')) {
+      try {
+        await api.delete(`/patients/${patientId}`);
+        await fetchPatients();
+      } catch (error) {
+        console.error("Error deleting patient:", error);
+      }
+    }
   };
   
   return (
@@ -122,9 +157,6 @@ const PatientsPage = () => {
             <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
               <Typography variant="body2" color="text.secondary">
                 Total pacientes: {patients.length}
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Activos: {patients.filter(p => p.status !== 'Inactivo').length}
               </Typography>
             </Box>
           </Grid>
@@ -166,7 +198,6 @@ const PatientsPage = () => {
       <Paper sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
-            {/* Modify TableHead for dark mode */}
             <TableHead 
               sx={{ 
                 backgroundColor: theme.palette.mode === 'dark' 
@@ -177,88 +208,84 @@ const PatientsPage = () => {
               <TableRow>
                 <TableCell></TableCell>
                 <TableCell>Nombre</TableCell>
-                <TableCell>Teléfono</TableCell>
+                <TableCell>Edad</TableCell>
                 <TableCell>Email</TableCell>
-                <TableCell>Estado</TableCell>
+                <TableCell>Peso</TableCell>
+                <TableCell>Altura</TableCell>
                 <TableCell align="center">Acciones</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {patients.map((patient) => {
-                // For demo purposes, add some extra fields if they don't exist
-                const status = patient.status || getRandomStatus();
-                const statusColor = status === 'Activo' ? 'success' : 'error';
-                
-                return (
-                  <TableRow 
-                    key={patient.id} 
-                    hover 
-                    sx={{ 
-                      cursor: 'pointer',
-                      '&:hover': {
-                        backgroundColor: theme.palette.mode === 'dark' 
-                          ? theme.palette.grey[700] 
-                          : theme.palette.grey[100]
-                      }
-                    }}
-                    onClick={() => handleRowClick(patient.id)}
-                  >
-                    <TableCell>
-                      <Avatar sx={{ bgcolor: '#8BC34A' }}>
-                        {getInitials(patient.name)}
-                      </Avatar>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body1">{patient.name}</Typography>
-                      {patient.age && (
-                        <Typography variant="body2" color="text.secondary">
-                          {patient.age} años
-                        </Typography>
-                      )}
-                    </TableCell>
-                    <TableCell>{patient.phone || '+56 9 1234 5678'}</TableCell>
-                    <TableCell>{patient.email || `${patient.name.toLowerCase().replace(' ', '.')}@email.com`}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={status}
+              {patients.map((patient) => (
+                <TableRow 
+                  key={patient.id} 
+                  hover 
+                  sx={{ 
+                    cursor: 'pointer',
+                    '&:hover': {
+                      backgroundColor: theme.palette.mode === 'dark' 
+                        ? theme.palette.grey[700] 
+                        : theme.palette.grey[100]
+                    }
+                  }}
+                  onClick={() => handleRowClick(patient.id)}
+                >
+                  <TableCell>
+                    <Avatar sx={{ bgcolor: '#8BC34A' }}>
+                      {getInitials(patient.name, patient.surname)}
+                    </Avatar>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="body1">
+                      {patient.name} {patient.surname || ''}
+                    </Typography>
+                  </TableCell>
+                  <TableCell>
+                    {patient.age ? `${patient.age} años` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {patient.email || '-'}
+                  </TableCell>
+                  <TableCell>
+                    {patient.weight ? `${patient.weight} kg` : '-'}
+                  </TableCell>
+                  <TableCell>
+                    {patient.height ? `${patient.height} cm` : '-'}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box 
+                      sx={{ 
+                        display: 'flex', 
+                        justifyContent: 'center', 
+                        gap: 1 
+                      }}
+                      onClick={(e) => e.stopPropagation()} // Prevent row click
+                    >
+                      <IconButton 
+                        component={Link} 
+                        to={`/patients/${patient.id}`}
                         size="small"
-                        color={statusColor}
-                      />
-                    </TableCell>
-                    <TableCell align="center">
-                      <Box 
-                        sx={{ 
-                          display: 'flex', 
-                          justifyContent: 'center', 
-                          gap: 1 
-                        }}
-                        onClick={(e) => e.stopPropagation()} // Prevent row click
+                        sx={{ color: 'primary.main' }}
                       >
-                        <IconButton 
-                          component={Link} 
-                          to={`/patients/${patient.id}`}
-                          size="small"
-                          sx={{ color: 'primary.main' }}
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          sx={{ color: 'primary.main' }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          sx={{ color: 'primary.main' }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                        <VisibilityIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        sx={{ color: 'primary.main' }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        sx={{ color: 'primary.main' }}
+                        onClick={(e) => handleDeletePatient(patient.id, e)}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
         </TableContainer>
@@ -271,7 +298,7 @@ const PatientsPage = () => {
             Por favor, ingrese la información del nuevo paciente.
           </DialogContentText>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
                 autoFocus
                 name="name"
@@ -280,11 +307,11 @@ const PatientsPage = () => {
                 variant="outlined"
                 value={newPatient.name}
                 onChange={handleChange}
+                required
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                autoFocus
                 name="surname"
                 label="Apellido"
                 fullWidth
@@ -305,16 +332,6 @@ const PatientsPage = () => {
             </Grid>
             <Grid item xs={12} sm={6}>
               <TextField
-                name="phone"
-                label="Teléfono"
-                fullWidth
-                variant="outlined"
-                value={newPatient.phone}
-                onChange={handleChange}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
                 name="age"
                 label="Edad"
                 type="number"
@@ -325,16 +342,28 @@ const PatientsPage = () => {
                 slotProps={{input: {min: 1}}}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid item xs={12} sm={6}>
               <TextField
-                name="comments"
-                label="Comentarios"
-                multiline
-                rows={3}
+                name="height"
+                label="Altura (cm)"
+                type="number"
                 fullWidth
                 variant="outlined"
-                value={newPatient.comments}
+                value={newPatient.height}
                 onChange={handleChange}
+                slotProps={{input: {min: 0, step: 0.1}}}
+              />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                name="weight"
+                label="Peso (kg)"
+                type="number"
+                fullWidth
+                variant="outlined"
+                value={newPatient.weight}
+                onChange={handleChange}
+                slotProps={{input: {min: 0, step: 0.1}}}
               />
             </Grid>
           </Grid>
