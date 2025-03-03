@@ -163,11 +163,11 @@ const PatientsPage = () => {
           <Grid item>
             <Box sx={{ display: 'flex', gap: 2 }}>
               <Button
-                variant="outlined"
-                startIcon={<FilterListIcon />}
-                size="small"
+                variant="contained"
+                startIcon={<PersonAddIcon />}
+                onClick={handleClickOpen}
               >
-                Filtrar
+                Nuevo paciente
               </Button>
               <Button
                 variant="outlined"
@@ -177,11 +177,11 @@ const PatientsPage = () => {
                 Exportar
               </Button>
               <Button
-                variant="contained"
-                startIcon={<PersonAddIcon />}
-                onClick={handleClickOpen}
+                variant="outlined"
+                startIcon={<FilterListIcon />}
+                size="small"
               >
-                Nuevo paciente
+                Filtrar
               </Button>
             </Box>
           </Grid>
