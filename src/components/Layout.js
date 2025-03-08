@@ -103,7 +103,7 @@ export default function Layout() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/patients" element={<PatientsPage />} />
             <Route path="/patients/:id" element={<PatientDetailsPage />} />
-            <Route path="/profile" element={UserProfilePage} />
+            <Route path="/profile" element={<UserProfilePage />} />
           </Routes>
         </DashboardLayout>
       </AppProvider>
