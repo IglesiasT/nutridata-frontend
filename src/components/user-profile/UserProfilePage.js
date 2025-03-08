@@ -8,7 +8,8 @@ import {
   Avatar,
   Divider,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Container
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import ProfileInfoDisplay from './ProfileInfoDisplay';
@@ -37,69 +38,92 @@ const UserProfilePage = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, md: 3 } }}>
+    <Container maxWidth="lg" disableGutters={false}>
       <Box sx={{ 
-        display: 'flex',
-        flexDirection: isMobile ? 'column' : 'row',
-        alignItems: isMobile ? 'center' : 'flex-start',
-        mb: 3
+        width: '100%', 
+        overflow: 'hidden',
+        p: { xs: 2, md: 3 } 
       }}>
-        <Avatar
-          sx={{ 
-            width: { xs: 80, md: 100 }, 
-            height: { xs: 80, md: 100 }, 
-            mr: isMobile ? 0 : 3,
-            mb: isMobile ? 2 : 0,
-            bgcolor: theme.palette.primary.light
-          }}
-          src={user.avatar}
-          alt={user.name}
-        >
-          {!user.avatar && user.name.charAt(0)}
-        </Avatar>
-        
-        <Box>
-          <Typography variant="h4" component="h1" gutterBottom>
-            {user.name}
-          </Typography>
-          <Typography variant="subtitle1" color="text.secondary">
-            {user.role} - {user.specialty}
-          </Typography>
-        </Box>
-      </Box>
-      
-      <Divider sx={{ mb: 4 }} />
-
-      <Paper elevation={2} sx={{ p: { xs: 2, md: 3 }, mb: 4 }}>
         <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          mb: 3 
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'center' : 'flex-start',
+          mb: 3,
+          width: '100%'
         }}>
-          <Typography variant="h6">Información Personal</Typography>
-          <Button
-            startIcon={<EditIcon />}
-            color="success"
-            variant="outlined"
-            onClick={() => setEditMode(!editMode)}
-            sx={{ textTransform: 'uppercase' }}
+          <Avatar
+            sx={{ 
+              width: { xs: 80, md: 100 }, 
+              height: { xs: 80, md: 100 }, 
+              mr: isMobile ? 0 : 3,
+              mb: isMobile ? 2 : 0,
+              bgcolor: theme.palette.primary.light,
+              flexShrink: 0
+            }}
+            src={user.avatar}
+            alt={user.name}
           >
-            {editMode ? 'Cancelar' : 'Editar'}
-          </Button>
+            {!user.avatar && user.name.charAt(0)}
+          </Avatar>
+          
+          <Box sx={{ width: '100%', textAlign: isMobile ? 'center' : 'left' }}>
+            <Typography variant="h4" component="h1" gutterBottom noWrap>
+              {user.name}
+            </Typography>
+            <Typography variant="subtitle1" color="text.secondary" noWrap>
+              {user.role} - {user.specialty}
+            </Typography>
+          </Box>
         </Box>
+        
+        <Divider sx={{ mb: 4 }} />
 
-        {editMode ? (
-          <ProfileInfoForm 
-            initialData={user} 
-            onSave={handleUserUpdate} 
-            onCancel={() => setEditMode(false)}
-          />
-        ) : (
-          <ProfileInfoDisplay user={user} />
-        )}
-      </Paper>
-    </Box>
+        <Paper 
+          elevation={2} 
+          sx={{ 
+            p: { xs: 2, md: 3 }, 
+            mb: 4,
+            width: '100%',
+            overflowX: 'hidden'
+          }}
+        >
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: isMobile ? 'column' : 'row',
+            justifyContent: 'space-between', 
+            alignItems: isMobile ? 'flex-start' : 'center', 
+            mb: 3,
+            gap: 2
+          }}>
+            <Typography variant="h6" noWrap>Información Personal</Typography>
+            <Button
+              startIcon={<EditIcon />}
+              color="success"
+              variant="outlined"
+              onClick={() => setEditMode(!editMode)}
+              sx={{ 
+                textTransform: 'uppercase',
+                alignSelf: isMobile ? 'flex-end' : 'auto'
+              }}
+            >
+              {editMode ? 'Cancelar' : 'Editar'}
+            </Button>
+          </Box>
+
+          <Box sx={{ width: '100%', overflowX: 'auto' }}>
+            {editMode ? (
+              <ProfileInfoForm 
+                initialData={user} 
+                onSave={handleUserUpdate} 
+                onCancel={() => setEditMode(false)}
+              />
+            ) : (
+              <ProfileInfoDisplay user={user} />
+            )}
+          </Box>
+        </Paper>
+      </Box>
+    </Container>
   );
 };
 

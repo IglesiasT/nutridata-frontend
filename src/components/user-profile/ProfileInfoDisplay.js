@@ -3,11 +3,11 @@ import { Grid2 as Grid, Typography, Box } from '@mui/material';
 import PropTypes from 'prop-types';
 
 const InfoItem = ({ label, value }) => (
-  <Box sx={{ mb: 2 }}>
+  <Box sx={{ mb: 2, width: '100%' }}>
     <Typography variant="subtitle2" color="text.secondary" gutterBottom>
       {label}
     </Typography>
-    <Typography variant="body1">
+    <Typography variant="body1" sx={{ wordBreak: 'break-word' }}>
       {value}
     </Typography>
   </Box>
@@ -20,7 +20,7 @@ InfoItem.propTypes = {
 
 const ProfileInfoDisplay = ({ user }) => {
   return (
-    <Grid container spacing={3}>
+    <Grid container spacing={3} sx={{ width: '100%' }}>
       <Grid xs={12} md={6}>
         <InfoItem label="Email" value={user.email} />
       </Grid>
