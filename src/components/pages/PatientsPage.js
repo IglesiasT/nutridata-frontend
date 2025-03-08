@@ -216,13 +216,7 @@ const PatientsPage = () => {
       <Paper sx={{ width: '100%', mb: 2, borderRadius: 2, overflow: 'hidden' }}>
         <TableContainer>
           <Table>
-            <TableHead 
-              sx={{ 
-                backgroundColor: theme.palette.mode === 'dark' 
-                  ? theme.palette.grey[800] 
-                  : '#f5f5f5' 
-              }}
-            >
+            <TableHead>
               <TableRow>
                 <TableCell></TableCell>
                 <TableCell>Nombre</TableCell>
