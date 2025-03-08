@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // Router
 import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 // Material UI components
@@ -19,7 +19,8 @@ import {
   MenuItem, 
   Divider,
   Collapse,
-  ListItemButton
+  ListItemButton,
+  Tooltip
 } from '@mui/material';
 // Icons
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -34,7 +35,8 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import ThemeProvider from '@mui/material/styles/ThemeProvider';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import { Experimental_CssVarsProvider as CssVarsProvider, useColorScheme } from '@mui/material/styles';
 // Pages
 import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
@@ -89,6 +91,27 @@ const NAVIGATION_ITEMS = [
     ]
   }
 ];
+
+// Toggle Theme Button component
+const ThemeToggle = () => {
+  const { mode, setMode } = useColorScheme();
+  
+  const toggleMode = () => {
+    setMode(mode === 'dark' ? 'light' : 'dark');
+  };
+
+  return (
+    <Tooltip title={mode === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}>
+      <IconButton
+        color="inherit"
+        onClick={toggleMode}
+        sx={{ ml: 1 }}
+      >
+        {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
+      </IconButton>
+    </Tooltip>
+  );
+};
 
 // Navigation item component
 const NavItem = ({ item }) => {
@@ -248,6 +271,7 @@ const UserProfileMenu = () => {
   return (
     <>
       <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <ThemeToggle />
         <IconButton
           onClick={handleMenu}
           color="inherit"
@@ -255,6 +279,7 @@ const UserProfileMenu = () => {
           aria-label="account of current user"
           aria-controls="menu-appbar"
           aria-haspopup="true"
+          sx={{ ml: 1 }}
         >
           <Avatar sx={{ bgcolor: 'primary.main' }}>
             <AccountCircleIcon />
@@ -371,10 +396,10 @@ function AppLayout() {
 
 export default function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <CssVarsProvider theme={theme} defaultMode="light">
       <Router>
         <AppLayout />
       </Router>
-    </ThemeProvider>
+    </CssVarsProvider>
   );
 }
