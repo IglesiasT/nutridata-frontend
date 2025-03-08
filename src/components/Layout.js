@@ -43,7 +43,7 @@ import PatientsPage from './pages/PatientsPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
 import UserProfilePage from './pages/UserProfilePage';
 // Theme
-import theme from '../theme/theme';
+import { useThemeContext } from "../theme/ThemeContextProvider";
 // Assets
 import logo from '../assets/images/nutridata-logo.webp';
 
@@ -92,19 +92,15 @@ const NAVIGATION_ITEMS = [
   }
 ];
 
-// Toggle Theme Button component
+// Theme toggle component
 const ThemeToggle = () => {
-  const { mode, setMode } = useColorScheme();
+  const { mode, toggleColorMode } = useThemeContext();
   
-  const toggleMode = () => {
-    setMode(mode === 'dark' ? 'light' : 'dark');
-  };
-
   return (
     <Tooltip title={mode === 'dark' ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}>
       <IconButton
         color="inherit"
-        onClick={toggleMode}
+        onClick={toggleColorMode}
         sx={{ ml: 1 }}
       >
         {mode === 'dark' ? <LightModeIcon /> : <DarkModeIcon />}
@@ -335,77 +331,73 @@ const UserProfileMenu = () => {
 };
 
 // Main layout
-function AppLayout() {
+function Layout() {
   const drawerWidth = 240;
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { mode } = useColorScheme();
+  const { mode, theme } = useThemeContext();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
-      <AppBar 
-        position="fixed" 
-        color="inherit"
-        elevation={1}
-        sx={{ 
-          width: { sm: `calc(100% - ${drawerWidth}px)` }, 
-          ml: { sm: `${drawerWidth}px` }
-        }}
-      >
-        <Toolbar>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Box sx={{ flexGrow: 1 }} />
-          <UserProfileMenu />
-        </Toolbar>
-      </AppBar>
-      
-      <Sidebar 
-        drawerWidth={drawerWidth} 
-        mobileOpen={mobileOpen} 
-        handleDrawerToggle={handleDrawerToggle}
-      />
-      
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: 8,
-          bgcolor: 'background.default',
-          color: 'text.primary'
-        }}
-      >
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/dashboard" element={<DashboardPage />} />
-          <Route path="/patients" element={<PatientsPage />} />
-          <Route path="/patients/:id" element={<PatientDetailsPage />} />
-          <Route path="/profile" element={<UserProfilePage />} />
-          <Route path="/settings" element={<div>Página de configuración</div>} />
-        </Routes>
-      </Box>
-    </Box>
-  );
-}
-
-export default function App() {
-  return (
-    <CssVarsProvider theme={theme} defaultMode="light">
+    <CssVarsProvider theme={theme} defaultMode={mode}>
       <Router>
-        <AppLayout />
+        <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
+          <AppBar 
+            position="fixed" 
+            color="inherit"
+            elevation={1}
+            sx={{ 
+              width: { sm: `calc(100% - ${drawerWidth}px)` }, 
+              ml: { sm: `${drawerWidth}px` }
+            }}
+          >
+            <Toolbar>
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                sx={{ mr: 2, display: { sm: 'none' } }}
+              >
+                <MenuIcon />
+              </IconButton>
+              <Box sx={{ flexGrow: 1 }} />
+              <UserProfileMenu />
+            </Toolbar>
+          </AppBar>
+          
+          <Sidebar 
+            drawerWidth={drawerWidth} 
+            mobileOpen={mobileOpen} 
+            handleDrawerToggle={handleDrawerToggle}
+          />
+          
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: 3,
+              width: { sm: `calc(100% - ${drawerWidth}px)` },
+              mt: 8,
+              bgcolor: 'background.default',
+              color: 'text.primary'
+            }}
+          >
+            <Routes>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/patients" element={<PatientsPage />} />
+              <Route path="/patients/:id" element={<PatientDetailsPage />} />
+              <Route path="/profile" element={<UserProfilePage />} />
+              <Route path="/settings" element={<div>Página de configuración</div>} />
+            </Routes>
+          </Box>
+        </Box>
       </Router>
     </CssVarsProvider>
   );
 }
+
+export default Layout;
