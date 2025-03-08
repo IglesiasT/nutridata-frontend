@@ -180,7 +180,7 @@ const NavItem = ({ item }) => {
   );
 };
 
-// Componente de la barra lateral
+// Sidebar component
 const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
   return (
     <>
@@ -214,6 +214,8 @@ const Sidebar = ({ drawerWidth, mobileOpen, handleDrawerToggle }) => {
 };
 
 const SidebarContent = () => {
+  const { mode } = useColorScheme();
+  
   return (
     <Box sx={{ overflow: 'auto' }}>
       <Box
@@ -336,15 +338,18 @@ const UserProfileMenu = () => {
 function AppLayout() {
   const drawerWidth = 240;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { mode } = useColorScheme();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
       <AppBar 
         position="fixed" 
+        color="inherit"
+        elevation={1}
         sx={{ 
           width: { sm: `calc(100% - ${drawerWidth}px)` }, 
           ml: { sm: `${drawerWidth}px` }
@@ -378,7 +383,8 @@ function AppLayout() {
           p: 3,
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           mt: 8,
-          minHeight: '100vh'
+          bgcolor: 'background.default',
+          color: 'text.primary'
         }}
       >
         <Routes>

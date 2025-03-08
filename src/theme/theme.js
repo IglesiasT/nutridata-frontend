@@ -1,3 +1,4 @@
+// theme.js
 import { experimental_extendTheme as extendTheme } from '@mui/material/styles';
 
 const theme = extendTheme({
@@ -36,6 +37,37 @@ const theme = extendTheme({
       md: 600,
       lg: 1200,
       xl: 1536,
+    },
+  },
+  components: {
+    MuiDrawer: {
+      styleOverrides: {
+        paper: ({ theme }) => ({
+          backgroundColor: theme.vars.palette.background.paper,
+          color: theme.vars.palette.text.primary,
+        }),
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.vars.palette.background.paper,
+          color: theme.vars.palette.text.primary,
+        }),
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          '&.Mui-selected': {
+            backgroundColor: theme.vars.palette.primary.main,
+            color: theme.vars.palette.primary.contrastText,
+            '& .MuiListItemIcon-root': {
+              color: theme.vars.palette.primary.contrastText,
+            },
+          },
+        }),
+      },
     },
   },
 });
