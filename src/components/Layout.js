@@ -41,7 +41,7 @@ import { Experimental_CssVarsProvider as CssVarsProvider, useColorScheme } from 
 import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
-import UserProfilePage from './pages/UserProfilePage';
+import UserProfilePage from './user-profile/UserProfilePage';
 // Theme
 import { useThemeContext } from "../theme/ThemeContextProvider";
 // Assets
