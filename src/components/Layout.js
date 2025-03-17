@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 // Router
-import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 // Material UI components
 import { 
   AppBar, 
@@ -42,6 +42,9 @@ import DashboardPage from './pages/DashboardPage';
 import PatientsPage from './pages/PatientsPage';
 import PatientDetailsPage from './pages/PatientDetailsPage';
 import UserProfilePage from './user-profile/UserProfilePage';
+// Auth
+import { useAuth } from '../context/AuthContext';
+import Login from './Login';
 // Theme
 import { useThemeContext } from "../theme/ThemeContextProvider";
 // Assets
@@ -241,6 +244,7 @@ const UserProfileMenu = () => {
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
+  const { logout, user } = useAuth(); // Access user and logout function from AuthContext
   
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -261,8 +265,8 @@ const UserProfileMenu = () => {
   };
 
   const handleSignOut = () => {
-    console.log("Cerrando sesión...");
-    window.location.href = '/';
+    logout();
+    navigate('/login');
     handleClose();
   };
 
@@ -284,9 +288,9 @@ const UserProfileMenu = () => {
           </Avatar>
         </IconButton>
         <Box sx={{ ml: 1, display: { xs: 'none', sm: 'block' } }}>
-          <Typography variant="body1">Usuario</Typography>
+          <Typography variant="body1">{user?.username || 'Usuario'}</Typography>
           <Typography variant="body2" color="textSecondary">
-            usuario@ejemplo.com
+            {user?.email || 'usuario@ejemplo.com'}
           </Typography>
         </Box>
       </Box>
@@ -330,72 +334,102 @@ const UserProfileMenu = () => {
   );
 };
 
+// Private route component
+const PrivateRoute = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+  
+  return isAuthenticated ? children : <Navigate to="/login" />;
+};
+
 // Main layout
 function Layout() {
   const drawerWidth = 240;
   const [mobileOpen, setMobileOpen] = useState(false);
   const { mode, theme } = useThemeContext();
+  const { isAuthenticated, loading } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  if (loading) {
+    return <div>Cargando...</div>;
+  }
+
+  // If not authenticated, show the login page
+  if (!isAuthenticated) {
+    return (
+      <CssVarsProvider theme={theme} defaultMode={mode}>
+        <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="*" element={<Navigate to="/login" />} />
+          </Routes>
+        </Box>
+      </CssVarsProvider>
+    );
+  }
+
+  // If authenticated, show the main layout
   return (
     <CssVarsProvider theme={theme} defaultMode={mode}>
-      <Router>
-        <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
-          <AppBar 
-            position="fixed" 
-            color="inherit"
-            elevation={1}
-            sx={{ 
-              width: { sm: `calc(100% - ${drawerWidth}px)` }, 
-              ml: { sm: `${drawerWidth}px` }
-            }}
-          >
-            <Toolbar>
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                sx={{ mr: 2, display: { sm: 'none' } }}
-              >
-                <MenuIcon />
-              </IconButton>
-              <Box sx={{ flexGrow: 1 }} />
-              <UserProfileMenu />
-            </Toolbar>
-          </AppBar>
-          
-          <Sidebar 
-            drawerWidth={drawerWidth} 
-            mobileOpen={mobileOpen} 
-            handleDrawerToggle={handleDrawerToggle}
-          />
-          
-          <Box
-            component="main"
-            sx={{
-              flexGrow: 1,
-              p: 3,
-              width: { sm: `calc(100% - ${drawerWidth}px)` },
-              mt: 8,
-              bgcolor: 'background.default',
-              color: 'text.primary'
-            }}
-          >
-            <Routes>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/patients" element={<PatientsPage />} />
-              <Route path="/patients/:id" element={<PatientDetailsPage />} />
-              <Route path="/profile" element={<UserProfilePage />} />
-              <Route path="/settings" element={<div>Página de configuración</div>} />
-            </Routes>
-          </Box>
+      <Box sx={{ display: 'flex', bgcolor: 'background.default', minHeight: '100vh' }}>
+        <AppBar 
+          position="fixed" 
+          color="inherit"
+          elevation={1}
+          sx={{ 
+            width: { sm: `calc(100% - ${drawerWidth}px)` }, 
+            ml: { sm: `${drawerWidth}px` }
+          }}
+        >
+          <Toolbar>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ mr: 2, display: { sm: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Box sx={{ flexGrow: 1 }} />
+            <UserProfileMenu />
+          </Toolbar>
+        </AppBar>
+        
+        <Sidebar 
+          drawerWidth={drawerWidth} 
+          mobileOpen={mobileOpen} 
+          handleDrawerToggle={handleDrawerToggle}
+        />
+        
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            p: 3,
+            width: { sm: `calc(100% - ${drawerWidth}px)` },
+            mt: 8,
+            bgcolor: 'background.default',
+            color: 'text.primary'
+          }}
+        >
+          <Routes>
+            <Route path="/" element={<Navigate to="/dashboard" />} />
+            <Route path="/login" element={<Navigate to="/dashboard" />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/patients" element={<PatientsPage />} />
+            <Route path="/patients/:id" element={<PatientDetailsPage />} />
+            <Route path="/profile" element={<UserProfilePage />} />
+            <Route path="/settings" element={<div>Página de configuración</div>} />
+          </Routes>
         </Box>
-      </Router>
+      </Box>
     </CssVarsProvider>
   );
 }
