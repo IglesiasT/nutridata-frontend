@@ -242,7 +242,7 @@ const Login = () => {
         </Paper>
         
         <Typography variant="body2" color="text.secondary" sx={{ mt: 4 }}>
-          © {new Date().getFullYear()} NutriData. Todos los derechos reservados.
+          © 2025 NutriData. Todos los derechos reservados.
         </Typography>
       </Box>
     </Container>
