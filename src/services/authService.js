@@ -39,7 +39,13 @@ const authService = {
       throw new Error('Error en registro');
     }
     
-    return await response.json();
+    // Try to process the response as JSON
+    try {
+      return await response.json();
+    } catch (error) {
+      // If it fails, return the response as text
+      return await response.text();
+    }
   },
   
   getCurrentUser: () => {
