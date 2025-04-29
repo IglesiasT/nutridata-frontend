@@ -1,63 +1,87 @@
-const API_URL = 'http://localhost:8080/auth/';
+import Keycloak from 'keycloak-js';
+
+const keycloakConfig = {
+  url: 'http://localhost:8080/auth', // Keycloak base url
+  realm: 'nutridata-realm',
+  clientId: 'my-cliente-id'
+};
+
+const keycloak = new Keycloak(keycloakConfig);
 
 const authService = {
-  login: async (username, password) => {
-    const response = await fetch(`${API_URL}login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
+  init: () => {
+    return new Promise((resolve, reject) => {
+      keycloak.init({
+        onLoad: 'check-sso',         // Check if user is already logged in
+        silentCheckSsoRedirectUri: window.location.origin + '/silent-check-sso.html',
+      }).then(authenticated => {
+        resolve(authenticated);
+      }).catch(error => {
+        reject(error);
+      });
     });
-    
-    if (!response.ok) {
-      throw new Error('Error en login');
-    }
-    
-    const data = await response.json();
-    if (data.token) {
-      localStorage.setItem('user', JSON.stringify({ username, token: data.token }));
-    }
-    
-    return data;
   },
-  
+
+  login: () => {
+    return keycloak.login();
+  },
+
   logout: () => {
-    localStorage.removeItem('user');
+    return keycloak.logout();
   },
-  
-  register: async (username, password) => {
-    const response = await fetch(`${API_URL}signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ username, password }),
-    });
-    
-    if (!response.ok) {
-      throw new Error('Error en registro');
-    }
-    
-    try {
-      return await response.json();
-    } catch (error) {
-      return await response.text();
-    }
+
+  register: () => {
+    return keycloak.register();
   },
-  
+
   getCurrentUser: () => {
-    return JSON.parse(localStorage.getItem('user'));
-  },
-  
-  authHeader: () => {
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    if (user && user.token) {
-      return { 'Authorization': 'Bearer ' + user.token };
-    } else {
-      return {};
+    if (keycloak.authenticated) {
+      // Decode token to get user information
+      return {
+        username: keycloak.tokenParsed.preferred_username,
+        name: keycloak.tokenParsed.name,
+        email: keycloak.tokenParsed.email,
+        roles: keycloak.tokenParsed.realm_access?.roles || []
+      };
     }
+    return null;
+  },
+
+  hasRole: (role) => {
+    return keycloak.hasRealmRole(role);
+  },
+
+  getToken: () => {
+    return keycloak.token;
+  },
+
+  // Update token if it's about to expire
+  updateToken: (minValidity = 5) => {
+    return new Promise((resolve, reject) => {
+      keycloak.updateToken(minValidity)
+        .then(refreshed => {
+          if (refreshed) {
+            console.log('Token actualizado');
+          }
+          resolve(keycloak.token);
+        })
+        .catch(error => {
+          console.error('Error al actualizar el token', error);
+          reject(error);
+        });
+    });
+  },
+
+  // Generate header for API requests
+  authHeader: () => {
+    if (keycloak.token) {
+      return { 'Authorization': 'Bearer ' + keycloak.token };
+    }
+    return {};
+  },
+
+  isAuthenticated: () => {
+    return !!keycloak.authenticated;
   }
 };
 
