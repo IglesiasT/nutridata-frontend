@@ -412,22 +412,35 @@ function Layout() {
           component="main"
           sx={{
             flexGrow: 1,
-            p: 3,
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
             mt: 8,
             bgcolor: 'background.default',
-            color: 'text.primary'
+            color: 'text.primary',
+            overflow: 'auto',
+            ml: { sm: `${drawerWidth}px` },
           }}
         >
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" />} />
-            <Route path="/login" element={<Navigate to="/dashboard" />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/patients" element={<PatientsPage />} />
-            <Route path="/patients/:id" element={<PatientDetailsPage />} />
-            <Route path="/profile" element={<UserProfilePage />} />
-            <Route path="/settings" element={<div>Página de configuración</div>} />
-          </Routes>
+          <Box
+            sx={{
+              flex: 1,
+              width: '100%',
+              px: { xs: 1, sm: 2 },
+              pb: 4,
+              display: 'flex',
+              flexDirection: 'column',
+              minHeight: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" />} />
+              <Route path="/login" element={<Navigate to="/dashboard" />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
+              <Route path="/patients" element={<PatientsPage />} />
+              <Route path="/patients/:id" element={<PatientDetailsPage />} />
+              <Route path="/profile" element={<UserProfilePage />} />
+              <Route path="/settings" element={<div>Página de configuración</div>} />
+            </Routes>
+          </Box>
         </Box>
       </Box>
     </CssVarsProvider>
