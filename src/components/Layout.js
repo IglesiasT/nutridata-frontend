@@ -416,13 +416,14 @@ function Layout() {
             bgcolor: 'background.default',
             color: 'text.primary',
             overflow: 'auto',
+            ml: { sm: `${drawerWidth}px` },
           }}
         >
           <Box
             sx={{
               flex: 1,
               width: '100%',
-              px: { xs: 2, sm: 6 },
+              px: { xs: 1, sm: 2 },
               pb: 4,
               display: 'flex',
               flexDirection: 'column',
