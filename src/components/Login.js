@@ -1,63 +1,84 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
 import {
   Box,
   CardContent,
-  TextField,
   Button,
   Typography,
   Alert,
   Container,
-  InputAdornment,
-  IconButton,
   Tabs,
   Tab,
-  Divider,
   Link,
-  Paper
+  Paper,
+  CircularProgress
 } from '@mui/material';
 import {
-  Visibility,
-  VisibilityOff,
-  Person,
-  Lock
+  Login as LoginIcon,
+  PersonAdd as RegisterIcon
 } from '@mui/icons-material';
 import logo from '../assets/images/nutridata-logo.webp';
 
 const Login = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [tabValue, setTabValue] = useState(0);
-  const [showPassword, setShowPassword] = useState(false);
-  const { login, register, error, loading } = useAuth();
-  const navigate = useNavigate();
+  const { login, register, error, loading, initialized, clearError } = useAuth();
   
   const isLogin = tabValue === 0;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleLogin = async () => {
+    if (!initialized) {
+      return;
+    }
     
     try {
-      if (isLogin) {
-        await login(username, password);
-        navigate('/dashboard'); 
-      } else {
-        await register(username, password);
-        setTabValue(0); // Change to login tab after registration
-      }
+      clearError();
+      await login();
+      // Si llegamos aquí, algo salió mal porque debería haber redirección
     } catch (err) {
-      console.error('Error:', err);
+      console.error('Error en login:', err);
+    }
+  };
+
+  const handleRegister = async () => {
+    if (!initialized) {
+      return;
+    }
+    
+    try {
+      clearError();
+      await register();
+      // Si llegamos aquí, algo salió mal porque debería haber redirección
+    } catch (err) {
+      console.error('Error en registro:', err);
     }
   };
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
+    clearError();
   };
 
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
+  // Mostrar loading mientras se inicializa
+  if (loading) {
+    return (
+      <Container maxWidth="xs">
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minHeight: '100vh'
+          }}
+        >
+          <CircularProgress size={60} />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Inicializando sistema de autenticación...
+          </Typography>
+        </Box>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="xs">
@@ -142,100 +163,89 @@ const Login = () => {
                   mb: 2,
                   borderRadius: 1
                 }}
+                onClose={clearError}
               >
                 {error}
               </Alert>
             )}
-            
-            <Box 
-              component="form" 
-              onSubmit={handleSubmit} 
-              sx={{ mt: 1 }}
-            >
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                id="username"
-                label="Usuario"
-                name="username"
-                autoComplete="username"
-                autoFocus
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Person color="action" />
-                    </InputAdornment>
-                  ),
-                }}
-                sx={{ mb: 2 }}
-              />
-              <TextField
-                margin="normal"
-                required
-                fullWidth
-                name="password"
-                label="Contraseña"
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                autoComplete={isLogin ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <Lock color="action" />
-                    </InputAdornment>
-                  ),
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton
-                        aria-label="toggle password visibility"
-                        onClick={togglePasswordVisibility}
-                        edge="end"
-                      >
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  ),
-                }}
-              />
-              
-              {isLogin && (
-                <Box sx={{ textAlign: 'right', mt: 1, mb: 2 }}>
-                  <Link href="#" variant="body2" underline="hover">
-                    ¿Olvidaste tu contraseña?
-                  </Link>
-                </Box>
-              )}
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                size="large"
+            {!initialized && (
+              <Alert 
+                severity="warning" 
                 sx={{ 
-                  mt: 2, 
                   mb: 2,
-                  py: 1.5,
-                  borderRadius: 1.5,
-                  textTransform: 'none',
-                  fontWeight: 'bold'
+                  borderRadius: 1
                 }}
-                disableElevation
-                disabled={loading}
               >
-                {loading ? 'Procesando...' : isLogin ? 'Iniciar Sesión' : 'Crear Cuenta'}
-              </Button>
-              
-              {!isLogin && (
-                <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 1 }}>
-                  Al registrarte, aceptas nuestros{' '}
-                  <Link href="#" underline="hover">Términos de servicio</Link> y{' '}
-                  <Link href="#" underline="hover">Política de privacidad</Link>
-                </Typography>
+                Sistema de autenticación no disponible
+              </Alert>
+            )}
+            
+            <Box sx={{ mt: 2 }}>
+              {isLogin ? (
+                <>
+                  <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+                    Haz clic en el botón para iniciar sesión de forma segura con Keycloak
+                  </Typography>
+                  
+                  <Button
+                    onClick={handleLogin}
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    startIcon={<LoginIcon />}
+                    sx={{ 
+                      mt: 2, 
+                      mb: 2,
+                      py: 1.5,
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      fontWeight: 'bold'
+                    }}
+                    disableElevation
+                    disabled={!initialized}
+                  >
+                    Iniciar Sesión con Keycloak
+                  </Button>
+
+                  <Box sx={{ textAlign: 'center', mt: 2 }}>
+                    <Link href="#" variant="body2" underline="hover">
+                      ¿Problemas para acceder?
+                    </Link>
+                  </Box>
+                </>
+              ) : (
+                <>
+                  <Typography variant="body1" sx={{ mb: 3, textAlign: 'center' }}>
+                    Crea tu cuenta de forma segura con Keycloak
+                  </Typography>
+                  
+                  <Button
+                    onClick={handleRegister}
+                    fullWidth
+                    variant="contained"
+                    size="large"
+                    startIcon={<RegisterIcon />}
+                    sx={{ 
+                      mt: 2, 
+                      mb: 2,
+                      py: 1.5,
+                      borderRadius: 1.5,
+                      textTransform: 'none',
+                      fontWeight: 'bold'
+                    }}
+                    disableElevation
+                    disabled={!initialized}
+                  >
+                    Crear Cuenta con Keycloak
+                  </Button>
+                  
+                  <Typography variant="body2" color="text.secondary" align="center" sx={{ mt: 2 }}>
+                    Al registrarte, aceptas nuestros{' '}
+                    <Link href="#" underline="hover">Términos de servicio</Link> y{' '}
+                    <Link href="#" underline="hover">Política de privacidad</Link>
+                  </Typography>
+                </>
               )}
             </Box>
           </CardContent>
