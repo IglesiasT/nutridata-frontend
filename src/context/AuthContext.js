@@ -1,5 +1,5 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import authService from '../services/authService';
+import authService from '../services/authServiceFactory';
 
 export const AuthContext = createContext();
 
@@ -58,7 +58,13 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       console.log('Redirigiendo a Keycloak para login...');
       await authService.login();
-      // Esta línea normalmente no se ejecuta porque hay redirección
+      
+      // Para el mock: verificar si ahora está autenticado
+      if (authService.isAuthenticated()) {
+        const currentUser = authService.getCurrentUser();
+        console.log('Usuario autenticado:', currentUser);
+        setUser(currentUser);
+      }
     } catch (err) {
       console.error('Error en login:', err);
       setError('Error al iniciar sesión');

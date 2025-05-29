@@ -1,5 +1,5 @@
 import realAuthService from './authService';
-import mockAuthService from './MockAuthService';
+import mockAuthService from './MockAuthService'
 
 const USE_MOCK = process.env.REACT_APP_USE_MOCK === 'true' || false;
 
