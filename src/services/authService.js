@@ -1,7 +1,7 @@
 import Keycloak from 'keycloak-js';
 
 const keycloakConfig = {
-  url: 'http://localhost:8080',
+  url: 'http://localhost:8181',
   realm: 'nutridata-realm',
   clientId: 'nutridata_client'
 };
