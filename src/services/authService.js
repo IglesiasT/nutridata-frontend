@@ -3,7 +3,7 @@ import Keycloak from 'keycloak-js';
 const keycloakConfig = {
   url: 'http://localhost:8181',
   realm: 'nutridata-realm',
-  clientId: 'nutridata_client'
+  clientId: 'nutridata_frontend'
 };
 
 let keycloak;
