@@ -62,7 +62,7 @@ const NAVIGATION_ITEMS = [
     type: 'item'
   },
   {
-    title: 'Patients',
+    title: 'Pacientes',
     icon: <PeopleIcon />,
     path: '/patients',
     type: 'item'
@@ -75,18 +75,18 @@ const NAVIGATION_ITEMS = [
     type: 'header'
   },
   {
-    title: 'Reports',
+    title: 'Reportes',
     icon: <BarChartIcon />,
     type: 'expandable',
     children: [
       {
-        title: 'Sales',
+        title: 'Ventas',
         icon: <DescriptionIcon />,
         path: '/reports/sales',
         type: 'item'
       },
       {
-        title: 'Traffic',
+        title: 'Trafico',
         icon: <DescriptionIcon />,
         path: '/reports/traffic',
         type: 'item'
